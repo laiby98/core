@@ -170,8 +170,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     # Set up example persistent notification
     persistent_notification.async_create(
         hass,
-        "This is an example of a persistent notification.",
-        title="Example Notification",
+        "Welcome to my university assignment! This notification comes from my local "
+        "Home Assistant Core code change.",
+        title="University Assignment Demo",
     )
 
     async def demo_start_listener(_event: Event) -> None:
