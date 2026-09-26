@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Laiba's program-comprehension artifact for Home Assistant's Energy integration."
+    />
+    <title>Home Energy Consumption — Program Comprehension</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #15231e;
+        --muted: #52635c;
+        --paper: #fbfdf9;
+        --panel: #ffffff;
+        --line: #d8e2dc;
+        --green: #156b4b;
+        --green-dark: #0b4732;
+        --mint: #dff4e7;
+        --gold: #f3b63f;
+        --shadow: 0 24px 70px rgba(25, 69, 50, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          radial-gradient(
+            circle at 8% 8%,
+            rgba(243, 182, 63, 0.19),
+            transparent 25rem
+          ),
+          radial-gradient(
+            circle at 90% 24%,
+            rgba(55, 167, 111, 0.15),
+            transparent 28rem
+          ),
+          var(--paper);
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        line-height: 1.65;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .shell {
+        width: min(1100px, calc(100% - 32px));
+        margin: 0 auto;
+      }
+
+      header {
+        padding: 24px 0;
+      }
+
+      nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 36px;
+        height: 36px;
+        place-items: center;
+        border-radius: 11px;
+        color: white;
+        background: var(--green);
+        box-shadow: 0 8px 20px rgba(21, 107, 75, 0.2);
+      }
+
+      .button {
+        appearance: none;
+        border: 1px solid var(--green);
+        border-radius: 999px;
+        padding: 9px 16px;
+        color: var(--green-dark);
+        background: rgba(255, 255, 255, 0.75);
+        font: inherit;
+        font-size: 0.9rem;
+        font-weight: 750;
+        cursor: pointer;
+      }
+
+      .button:hover {
+        background: var(--mint);
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(250px, 0.6fr);
+        gap: 42px;
+        align-items: end;
+        padding: 70px 0 58px;
+      }
+
+      .eyebrow {
+        margin: 0 0 14px;
+        color: var(--green);
+        font-size: 0.78rem;
+        font-weight: 850;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3 {
+        line-height: 1.12;
+      }
+
+      h1 {
+        max-width: 760px;
+        margin: 0;
+        font-size: clamp(2.6rem, 7vw, 5.7rem);
+        letter-spacing: -0.065em;
+      }
+
+      .hero-copy {
+        max-width: 700px;
+        margin: 24px 0 0;
+        color: var(--muted);
+        font-size: clamp(1rem, 2vw, 1.18rem);
+      }
+
+      .meter {
+        position: relative;
+        min-height: 245px;
+        overflow: hidden;
+        border: 1px solid rgba(21, 107, 75, 0.18);
+        border-radius: 30px;
+        background: linear-gradient(145deg, var(--green-dark), var(--green));
+        box-shadow: var(--shadow);
+      }
+
+      .meter::before {
+        position: absolute;
+        width: 210px;
+        height: 210px;
+        right: -56px;
+        top: -62px;
+        border: 38px solid rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        content: "";
+      }
+
+      .meter-content {
+        position: absolute;
+        inset: auto 26px 25px;
+        color: white;
+      }
+
+      .meter-value {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--gold);
+        font-size: 3.5rem;
+        font-weight: 900;
+        letter-spacing: -0.06em;
+        line-height: 1;
+      }
+
+      .meter-label {
+        color: rgba(255, 255, 255, 0.78);
+      }
+
+      main {
+        padding-bottom: 72px;
+      }
+
+      .metadata {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1px;
+        overflow: hidden;
+        margin-bottom: 26px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--line);
+      }
+
+      .metadata div {
+        padding: 20px 22px;
+        background: var(--panel);
+      }
+
+      .metadata span {
+        display: block;
+        color: var(--muted);
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+      }
+
+      .metadata strong {
+        display: block;
+        margin-top: 5px;
+        overflow-wrap: anywhere;
+      }
+
+      .content-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.75fr);
+        gap: 26px;
+        align-items: start;
+      }
+
+      .card {
+        padding: clamp(24px, 5vw, 44px);
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 10px 35px rgba(25, 69, 50, 0.06);
+      }
+
+      .card + .card {
+        margin-top: 26px;
+      }
+
+      h2 {
+        margin: 0 0 20px;
+        font-size: clamp(1.55rem, 3vw, 2.25rem);
+        letter-spacing: -0.035em;
+      }
+
+      h3 {
+        margin: 0 0 10px;
+        font-size: 1.05rem;
+      }
+
+      p {
+        margin: 0 0 16px;
+      }
+      p:last-child {
+        margin-bottom: 0;
+      }
+
+      code {
+        padding: 0.15em 0.36em;
+        border-radius: 5px;
+        color: var(--green-dark);
+        background: var(--mint);
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        font-size: 0.86em;
+      }
+
+      .technique {
+        display: grid;
+        grid-template-columns: 42px 1fr;
+        gap: 16px;
+        padding: 23px 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .technique:first-of-type {
+        padding-top: 0;
+        border-top: 0;
+      }
+
+      .number {
+        display: grid;
+        width: 42px;
+        height: 42px;
+        place-items: center;
+        border-radius: 14px;
+        color: white;
+        background: var(--green);
+        font-weight: 900;
+      }
+
+      .result {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 14px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        color: var(--green-dark);
+        background: var(--mint);
+        font-weight: 800;
+      }
+
+      .check {
+        display: grid;
+        flex: 0 0 26px;
+        height: 26px;
+        place-items: center;
+        border-radius: 50%;
+        color: white;
+        background: var(--green);
+      }
+
+      .side-card {
+        position: sticky;
+        top: 20px;
+      }
+
+      .boundary {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .boundary li {
+        position: relative;
+        padding: 11px 0 11px 27px;
+        border-top: 1px solid var(--line);
+      }
+
+      .boundary li::before {
+        position: absolute;
+        left: 0;
+        color: var(--green);
+        font-weight: 900;
+        content: "✓";
+      }
+
+      .boundary.out li::before {
+        color: #a55243;
+        content: "—";
+      }
+
+      .evidence {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .evidence li {
+        padding: 10px 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .evidence code {
+        display: block;
+        padding: 0;
+        overflow-wrap: anywhere;
+        background: transparent;
+      }
+
+      .command {
+        margin-top: 18px;
+        padding: 15px;
+        overflow-x: auto;
+        border-radius: 12px;
+        color: #e8fff2;
+        background: var(--green-dark);
+        font-size: 0.76rem;
+        line-height: 1.55;
+        white-space: pre-wrap;
+      }
+
+      footer {
+        padding: 28px 0 50px;
+        color: var(--muted);
+        font-size: 0.84rem;
+        text-align: center;
+      }
+
+      @media (max-width: 800px) {
+        .hero,
+        .content-grid {
+          grid-template-columns: 1fr;
+        }
+        .hero {
+          padding-top: 46px;
+        }
+        .meter {
+          min-height: 180px;
+        }
+        .metadata {
+          grid-template-columns: 1fr;
+        }
+        .side-card {
+          position: static;
+        }
+      }
+
+      @media print {
+        body {
+          background: white;
+          font-size: 10.5pt;
+        }
+        header,
+        .meter,
+        footer {
+          display: none;
+        }
+        .shell {
+          width: 100%;
+        }
+        .hero {
+          display: block;
+          padding: 0 0 22px;
+        }
+        h1 {
+          font-size: 31pt;
+        }
+        .content-grid {
+          grid-template-columns: 1.65fr 0.75fr;
+          gap: 14px;
+        }
+        .card {
+          padding: 20px;
+          box-shadow: none;
+          break-inside: avoid;
+        }
+        .metadata div {
+          padding: 12px;
+        }
+        .button {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <nav class="shell" aria-label="Artifact controls">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">⚡</span> Program
+          Comprehension
+        </div>
+        <button class="button" type="button" onclick="window.print()">
+          Print / Save PDF
+        </button>
+      </nav>
+    </header>
+
+    <section class="hero shell">
+      <div>
+        <p class="eyebrow">Group Assignment 1 · Person 1 Artifact</p>
+        <h1>Home Energy Consumption</h1>
+        <p class="hero-copy">
+          An evidence-based scope and comprehension plan for Home Assistant's
+          <code>energy</code> integration.
+        </p>
+      </div>
+      <div class="meter" aria-label="Two focused tests passed">
+        <div class="meter-content">
+          <span class="meter-value">2/2</span>
+          <span class="meter-label">focused behavior tests passed</span>
+        </div>
+      </div>
+    </section>
+
+    <main class="shell">
+      <section class="metadata" aria-label="Artifact metadata">
+        <div><span>Contributor</span><strong>Laiba</strong></div>
+        <div>
+          <span>Integration</span><strong>Energy · <code>energy</code></strong>
+        </div>
+        <div>
+          <span>Repository revision</span><strong>6f2d2aab3105…bbe0a8</strong>
+        </div>
+      </section>
+
+      <div class="content-grid">
+        <div>
+          <article class="card">
+            <h2>Scope and rationale</h2>
+            <p>
+              Our approved subject is Home Assistant's
+              <strong>Energy integration</strong>, located in
+              <code>homeassistant/components/energy</code>. We focus on the path
+              by which household electricity statistics are configured,
+              validated, stored, and exposed to the Energy dashboard. The main
+              scenario is consumption from the electrical grid; solar
+              production, battery flow, device-level consumption, and calculated
+              cost are included where they clarify that scenario.
+            </p>
+            <p>
+              The manifest identifies Energy as a calculated system integration
+              and declares <code>websocket_api</code>, <code>history</code>, and
+              <code>recorder</code> as dependencies. This establishes an
+              important boundary: Energy does not communicate directly with a
+              physical meter. Other integrations produce sensor states and
+              long-term statistics; Energy selects and validates those
+              statistics, stores user preferences, calculates supporting values
+              such as costs, and supplies results to the frontend.
+            </p>
+            <p>
+              The scope provides a meaningful end-to-end path without requiring
+              the group to recover all of Home Assistant. It also exposes clear
+              boundaries between the frontend, Core, persistence/statistics
+              services, and device integrations.
+            </p>
+          </article>
+
+          <article class="card">
+            <h2>Complementary techniques</h2>
+            <section class="technique">
+              <div class="number">1</div>
+              <div>
+                <h3>Systematic repository search and code reading</h3>
+                <p>
+                  We begin at <code>manifest.json</code>, follow
+                  <code>async_setup()</code> to the registered WebSocket
+                  handlers, and trace <code>ws_save_prefs()</code> into
+                  <code>EnergyManager.async_update()</code>, delayed storage,
+                  update listeners, generated sensors, and validation. Targeted
+                  symbol searches and nearby tests reveal static
+                  responsibilities, module boundaries, and candidate steps for
+                  the group's diagrams and trace.
+                </p>
+              </div>
+            </section>
+            <section class="technique">
+              <div class="number">2</div>
+              <div>
+                <h3>Focused execution and test-based experimentation</h3>
+                <p>
+                  We run narrow existing tests for behavior found during
+                  reading. The selected tests exercise integration setup,
+                  WebSocket requests, default and updated preferences, delayed
+                  storage, generated cost-sensor information, and the
+                  configured-state check. Reading explains how the path is
+                  intended to work; executable assertions independently confirm
+                  that the selected path is exercised.
+                </p>
+                <div class="result">
+                  <span class="check" aria-hidden="true">✓</span>2 passed in
+                  1.29 seconds
+                </div>
+              </div>
+            </section>
+          </article>
+        </div>
+
+        <aside>
+          <section class="card side-card">
+            <h2>Boundaries</h2>
+            <h3>In scope</h3>
+            <ul class="boundary">
+              <li>Grid consumption statistics</li>
+              <li>Preferences and validation</li>
+              <li>Solar, battery, and device context</li>
+              <li>Cost calculation and dashboard boundary</li>
+            </ul>
+            <h3 style="margin-top: 24px">Out of scope</h3>
+            <ul class="boundary out">
+              <li>Physical device protocols</li>
+              <li>The complete recorder internals</li>
+              <li>Water and gas except shared interfaces</li>
+            </ul>
+          </section>
+
+          <section class="card">
+            <h2>Evidence trail</h2>
+            <ul class="evidence">
+              <li><code>manifest.json:2–9</code></li>
+              <li><code>__init__.py:16–37</code></li>
+              <li><code>websocket_api.py:44–52, 102–145, 170–182</code></li>
+              <li><code>data.py:754–806</code></li>
+              <li><code>test_websocket_api.py:50–106, 172–203</code></li>
+            </ul>
+            <div class="command" aria-label="Reproduction command">
+              uv run --no-sync pytest -q
+              tests/components/energy/test_websocket_api.py::test_get_preferences_default
+              tests/components/energy/test_websocket_api.py::test_save_preferences
+            </div>
+          </section>
+        </aside>
+      </div>
+    </main>
+
+    <footer class="shell">
+      Prepared from Home Assistant Core revision
+      6f2d2aab3105efaf9f38af7b9bfb50e237bbe0a8 · Evidence verified locally
+    </footer>
+  </body>
+</html>
